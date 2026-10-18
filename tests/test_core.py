@@ -170,11 +170,14 @@ class TestSelector(unittest.TestCase):
 
     def test_select_keep_chain(self):
         from visual_dedup.selector import select_keep
-        img1 = Image.new('RGB', (64, 64), 'red')
-        img2 = Image.new('RGB', (64, 64), 'blue')
-        img1.save(self.root / 'a.png')
-        img2.save(self.root / 'b.png')
-        # Same pixel area, file_size, first_alphabetical picks 'a.png'
+        # Identical content -> identical pixel area AND identical file size,
+        # so by_pixel_area and by_file_size both defer, and first_alphabetical
+        # picks 'a.png'. Using red vs blue would make PNG byte sizes differ
+        # across platforms/zlib versions, breaking this test on Linux CI.
+        img = Image.new('RGB', (64, 64), 'red')
+        img.save(self.root / 'a.png')
+        img.save(self.root / 'b.png')
+        # Same pixel area, same file size -> first_alphabetical picks 'a.png'
         result = select_keep([self.root / 'b.png', self.root / 'a.png'])
         self.assertEqual(result, self.root / 'a.png')
 
