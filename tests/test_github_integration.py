@@ -63,10 +63,14 @@ class TestGitHubIntegration(unittest.TestCase):
             r"C:\Users\素质\secret\original.png",
             r"C:\Users\素质\secret\duplicate.png",
         ]
+        report["errors"][0]["message"] = (
+            "cannot identify image file 'C:\\Users\\素质\\secret\\corrupt.jpg'"
+        )
         body = build_issue_body(report)
         self.assertNotIn("C:\\", body)
         self.assertNotIn("Users", body)
         self.assertIn("duplicate.png", body)
+        self.assertIn("corrupt.jpg", body)
 
     def test_create_issue_makes_post_request(self):
         from visual_dedup import github_integration as gh

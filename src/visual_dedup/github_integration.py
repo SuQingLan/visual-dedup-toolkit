@@ -88,12 +88,23 @@ def create_issue(
     )
 
 
-def _public_name(path: str) -> str:
-    """Strip a local path to its basename for public issue bodies.
+def _public_name(text: str) -> str:
+    """Strip local paths to their basename for public issue bodies.
 
-    Never leak local absolute paths (e.g. C:\\Users\\...) into a public repo.
+    Handles Windows (C:\\...) and POSIX (/home/...) paths embedded in
+    exception messages. Never leaks local paths into a public repo.
     """
-    return str(path).replace("\\", "/").rsplit("/", 1)[-1]
+    import re
+    result = str(text)
+    # Windows absolute paths: drive letter followed by \\ or /
+    result = re.sub(
+        r"[A-Za-z]:[\\/][^\s'\"]+",
+        lambda m: m.group(0).split("\\")[-1].split("/")[-1],
+        result,
+    )
+    # POSIX absolute paths starting with /
+    result = re.sub(r"/[^\s'\"]+", lambda m: m.group(0).split("/")[-1], result)
+    return result
 
 
 def build_issue_body(report: Dict[str, Any]) -> str:
@@ -150,7 +161,8 @@ def build_issue_body(report: Dict[str, Any]) -> str:
         lines.append("## 错误文件")
         lines.append("")
         lines.append("- " + "\n- ".join(
-            f"`{_public_name(e['path'])}`: {e['message']}" for e in errors[:20]
+            f"`{_public_name(e['path'])}`: {_public_name(e['message'])}"
+            for e in errors[:20]
         ))
         if len(errors) > 20:
             lines.append(f"\n（共 {len(errors)} 个，以上仅显示前 20 个）")
