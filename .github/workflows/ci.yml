@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.12", "3.14"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install package
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
+      - name: Run tests
+        run: |
+          python -X utf8 -W error -m unittest discover -s tests -v
+
+      - name: Generate sample data
+        run: |
+          python examples/generate_samples.py test_images
+
+      - name: Run CLI end-to-end (dry-run)
+        run: |
+          visual-dedup test_images -o dedup-report --threshold 0.8
+          test -f dedup-report/report.json
+          test -f dedup-report/report.html
+
+      - name: Verify reports reference expected findings
+        run: |
+          python - <<'EOF'
+          import json
+          with open('dedup-report/report.json', encoding='utf-8') as f:
+              report = json.load(f)
+          assert report['exact_duplicate_groups'] == 1, report
+          assert report['similar_groups'] == 1, report
+          print('CLI end-to-end OK:', report['exact_duplicate_groups'], 'exact,',
+                report['similar_groups'], 'similar')
+          EOF
