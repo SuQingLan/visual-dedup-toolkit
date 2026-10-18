@@ -14,9 +14,16 @@ Image.MAX_IMAGE_PIXELS = None
 
 
 def compute_md5(file_path: Path) -> str:
-    """Compute MD5 hash of a file in streaming mode."""
+    """Compute MD5 hash of a file in streaming mode.
+
+    Uses chunked reading instead of ``hashlib.file_digest`` for
+    compatibility with Python 3.10 (``file_digest`` was added in 3.11).
+    """
+    digest = hashlib.md5()
     with open(file_path, 'rb') as stream:
-        return hashlib.file_digest(stream, 'md5').hexdigest()
+        for chunk in iter(lambda: stream.read(1024 * 1024), b''):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def compute_phash(
