@@ -28,3 +28,6 @@ test_images/
 
 # Test artifacts
 *.log
+# Generated example outputs (regenerate with examples/ scripts)
+examples_out/
+examples_out_report/
