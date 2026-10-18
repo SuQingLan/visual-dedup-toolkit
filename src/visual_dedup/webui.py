@@ -88,7 +88,7 @@ body {{ font-family: system-ui, sans-serif; max-width: 1000px; margin: 0 auto; p
 <div class="summary">
 <div>Total images: {self.report.get('total_images', 0)}</div>
 <div>Exact groups: {self.report.get('exact_duplicate_groups', 0)}</div>
-<div>Similar groups: {self.report.get('similar_groups', 0)}</div>
+<div>Similar groups: {self.report.get('similar_group_count', 0)}</div>
 <div>Errors: {self.report.get('error_count', 0)}</div>
 </div>
 {"".join(cards) if cards else "<p>No duplicate or similar groups found.</p>"}

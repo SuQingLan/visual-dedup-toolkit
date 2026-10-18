@@ -33,7 +33,7 @@ def generate_json_report(
         "scan_time": datetime.now(timezone.utc).isoformat(),
         "total_images": total_images,
         "exact_duplicate_groups": len(exact_groups),
-        "similar_groups": len(similar_groups),
+        "similar_group_count": len(similar_groups),
         "error_count": len(errors),
         "elapsed_seconds": round(elapsed, 4),
         "exact_groups": [
@@ -116,7 +116,7 @@ body {{ font-family: system-ui, sans-serif; max-width: 960px; margin: 0 auto; pa
 <div class="summary">
   <div class="card"><div class="label">Images</div><div class="value">{report['total_images']}</div></div>
   <div class="card"><div class="label">Exact Groups</div><div class="value">{report['exact_duplicate_groups']}</div></div>
-  <div class="card"><div class="label">Similar Groups</div><div class="value">{report['similar_groups']}</div></div>
+  <div class="card"><div class="label">Similar Groups</div><div class="value">{report['similar_group_count']}</div></div>
   <div class="card"><div class="label">Errors</div><div class="value">{report['error_count']}</div></div>
 </div>
 {exact_html}
