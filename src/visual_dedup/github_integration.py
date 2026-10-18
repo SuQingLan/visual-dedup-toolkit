@@ -88,6 +88,14 @@ def create_issue(
     )
 
 
+def _public_name(path: str) -> str:
+    """Strip a local path to its basename for public issue bodies.
+
+    Never leak local absolute paths (e.g. C:\\Users\\...) into a public repo.
+    """
+    return str(path).replace("\\", "/").rsplit("/", 1)[-1]
+
+
 def build_issue_body(report: Dict[str, Any]) -> str:
     """Build a Markdown issue body summarizing a deduplication scan."""
     stamp = report.get("scan_time", "")
@@ -112,8 +120,8 @@ def build_issue_body(report: Dict[str, Any]) -> str:
         lines.append("## 完全重复组")
         lines.append("")
         for i, g in enumerate(exact_groups, 1):
-            keep = g.get("keep", "").rsplit("/", 1)[-1]
-            candidates = [c.rsplit("/", 1)[-1] for c in g.get("candidates", [])]
+            keep = _public_name(g.get("keep", ""))
+            candidates = [_public_name(c) for c in g.get("candidates", [])]
             lines.append(f"### 组 {i}（保留 `{keep}`）")
             lines.append("")
             lines.append("- " + "\n- ".join(f"`{c}`" for c in candidates))
@@ -124,10 +132,12 @@ def build_issue_body(report: Dict[str, Any]) -> str:
         lines.append("## 相似组")
         lines.append("")
         for i, g in enumerate(similar_groups, 1):
-            keep = g.get("keep", "").rsplit("/", 1)[-1]
-            group = [p.rsplit("/", 1)[-1] for p in g.get("group", [])]
+            keep = _public_name(g.get("keep", ""))
+            group = [_public_name(p) for p in g.get("group", [])]
             sims = g.get("similarities", {})
-            sim_text = "; ".join(f"{k.rsplit('/',1)[-1]}≈{v:.3f}" for k, v in list(sims.items())[:3])
+            sim_text = "; ".join(
+                f"{_public_name(k)}≈{v:.3f}" for k, v in list(sims.items())[:3]
+            )
             lines.append(f"### 组 {i}（保留 `{keep}`）")
             lines.append("")
             lines.append("- " + "\n- ".join(f"`{c}`" for c in group))
@@ -140,7 +150,7 @@ def build_issue_body(report: Dict[str, Any]) -> str:
         lines.append("## 错误文件")
         lines.append("")
         lines.append("- " + "\n- ".join(
-            f"`{e['path'].rsplit('/',1)[-1]}`: {e['message']}" for e in errors[:20]
+            f"`{_public_name(e['path'])}`: {e['message']}" for e in errors[:20]
         ))
         if len(errors) > 20:
             lines.append(f"\n（共 {len(errors)} 个，以上仅显示前 20 个）")

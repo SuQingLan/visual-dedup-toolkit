@@ -55,6 +55,19 @@ class TestGitHubIntegration(unittest.TestCase):
         self.assertIn("corrupt.jpg", body)
         self.assertIn("visual-dedup-toolkit", body)
 
+    def test_issue_body_strips_absolute_paths(self):
+        """Regression: public issue bodies must not leak local absolute paths."""
+        from visual_dedup.github_integration import build_issue_body
+        report = self._sample_report()
+        report["exact_groups"][0]["candidates"] = [
+            r"C:\Users\素质\secret\original.png",
+            r"C:\Users\素质\secret\duplicate.png",
+        ]
+        body = build_issue_body(report)
+        self.assertNotIn("C:\\", body)
+        self.assertNotIn("Users", body)
+        self.assertIn("duplicate.png", body)
+
     def test_create_issue_makes_post_request(self):
         from visual_dedup import github_integration as gh
 
