@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/lang/zh-CN/).
 
+## [0.2.0] - 2026-10-18
+
+### Added
+
+- **GitHub API 集成**（`github_integration.py`）：扫描完成后可向指定仓库自动创建 Issue（查重摘要）。
+  - `--gh-repo owner/repo` + `GITHUB_TOKEN`（或 `--gh-token`）触发；
+  - 纯标准库实现（urllib），零新增依赖；
+  - token 从环境变量读取，绝不写入报告；无 token 时优雅跳过（返回码 2）；
+  - 认证失败/余额不足不自动重试。
+- 6 项 GitHub 集成单元测试（mock 网络调用：token 读取、Issue body 生成、POST 请求、HTTP 错误处理）。
+
 ## [0.1.0] - 2026-10-18
 
 ### Added

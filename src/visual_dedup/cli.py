@@ -88,6 +88,18 @@ def main(args: List[str] | None = None):
         default=False,
         help="Actually execute file operations. Use with caution!",
     )
+    parser.add_argument(
+        "--gh-repo",
+        type=str,
+        default=None,
+        help="owner/repo to submit the dedup summary issue to (GitHub API integration).",
+    )
+    parser.add_argument(
+        "--gh-token",
+        type=str,
+        default=None,
+        help="GitHub token. If omitted, reads GITHUB_TOKEN from the environment.",
+    )
 
     opts = parser.parse_args(args)
 
@@ -205,6 +217,21 @@ def main(args: List[str] | None = None):
     else:
         print("\n" + plan.preview())
         print("\n(Dry run — use --execute to apply operations)")
+
+    # Phase 10: GitHub API integration (optional)
+    if opts.gh_repo:
+        import json as _json
+        from . import github_integration as gh
+        token = opts.gh_token or gh.get_token()
+        if not token:
+            print("Error: --gh-repo requires a token via --gh-token or GITHUB_TOKEN env.")
+            return 2
+        try:
+            issue = gh.submit_dedup_issue(opts.gh_repo, report, token)
+            print(f"GitHub issue created: {issue.get('html_url', '')}")
+        except gh.GitHubAPIError as e:
+            print(f"GitHub issue creation failed: {e}")
+            return 1
 
     print(f"\nReport saved to: {output_dir}")
     print(f"Elapsed: {elapsed:.2f}s")

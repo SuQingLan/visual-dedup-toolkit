@@ -87,6 +87,19 @@ visual-dedup test_images -o dedup-report --move-duplicates dedup-report/duplicat
 visual-dedup test_images -o dedup-report --move-duplicates dedup-report/duplicates --execute
 ```
 
+### 5. GitHub API 集成（提交查重摘要）
+
+扫描完成后可自动向 GitHub 仓库创建 Issue（查重摘要）：
+
+```bash
+GITHUB_TOKEN=your_token visual-dedup test_images -o dedup-report \
+  --gh-repo owner/repo
+```
+
+- token 通过 `GITHUB_TOKEN` 环境变量或 `--gh-token` 提供，**绝不写入任何报告文件**。
+- 无 token 时该功能优雅跳过（打印错误、返回码 2），不影响本地扫描结果。
+- 使用标准库 `urllib`，零新增依赖；认证失败/余额不足不自动重试。
+
 ## 命令行参数
 
 | 参数 | 说明 | 默认 |
